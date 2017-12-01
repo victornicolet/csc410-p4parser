@@ -37,3 +37,35 @@
 (require racket/pretty)
 (println "Variable declarations")
 (pretty-print (syntax->datum declarations))
+
+
+;; An example that runs a rosette sketch and gets the solution back
+(define file_contents
+"#lang rosette
+(require rosette/lib/synthax)
+(define-symbolic bogus integer?)
+(define (to_synth a) (= 0 (??)))
+(define odot
+  (synthesize
+   #:forall (list bogus)
+   #:guarantee (assert (to_synth bogus))))
+(if (sat? odot)
+(display (syntax->datum (car (generate-forms odot))))
+(print \"unsat\"))
+"
+)
+
+(define (output-to-file f contents)
+  (call-with-output-file
+    f
+    #:exists 'replace
+    (lambda (out) (display contents out))))
+
+(define out_filename "__out__.rkt")
+(define sol_filename "__sol__.rkt")
+;; OUtput the file with the problem to out
+(output-to-file out_filename file_contents)
+;; execute the command and redirect the output to sol filename
+(system (string-join (list "racket " out_filename " > " sol_filename)))
+;; read the solution
+(define solution (file->syntax sol_filename))
